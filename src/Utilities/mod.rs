@@ -78,9 +78,9 @@ impl Module
                     }
                 }
             }
-            println!("couldn't get module");
-            return Module { m_dwBase: ptr::null_mut(), m_dwSize: 0 }
         }
+        println!("couldn't get module");
+        return Module { m_dwBase: ptr::null_mut(), m_dwSize: 0 }
     }
 }
 
