@@ -23,7 +23,7 @@ pub struct Process {
 }
 
 pub struct Module {
-    pub m_dwBase: *mut u8,
+    pub m_dwBase: u32,
     pub m_dwSize: u32,
 }
 
@@ -66,13 +66,13 @@ impl Module {
                         if s.contains(moduleName) {
                             unsafe { kernel32::CloseHandle(hModule) };
 
-                            println!("Base Address of {}: {:?} Size of module: 0x{:X}",
+                            println!("Base Address of {}: 0x{:X} Size of module: 0x{:X}",
                                      moduleName,
-                                     Entry.modBaseAddr,
+                                     Entry.modBaseAddr as u32,
                                      Entry.modBaseSize);
 
                             return Module {
-                                m_dwBase: Entry.modBaseAddr,
+                                m_dwBase: Entry.modBaseAddr as u32,
                                 m_dwSize: Entry.modBaseSize,
                             };
                         }
@@ -86,8 +86,8 @@ impl Module {
 
         println!("couldn't get module");
         return Module {
-            m_dwBase: ptr::null_mut(),
-            m_dwSize: 0,
+            m_dwBase: 0x0,
+            m_dwSize: 0x0,
         };
     }
 }
