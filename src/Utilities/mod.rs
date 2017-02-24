@@ -45,7 +45,7 @@ impl Module
         
         let hModule = unsafe
         {
-            kernel32::CreateToolhelp32Snapshot(winapi::TH32CS_SNAPMODULE, dwPID)
+            kernel32::CreateToolhelp32Snapshot(winapi::TH32CS_SNAPMODULE32, dwPID)
         };
 
         let mut Entry: winapi::MODULEENTRY32W = unsafe { mem::zeroed() };
@@ -56,6 +56,8 @@ impl Module
         {
             if unsafe { kernel32::Module32FirstW(hModule, &mut Entry) } != 0
             {
+                let strmod = OsString::from_wide(&Entry.szModule);
+                println!("{:?}", strmod);
                 println!("1");
                 while unsafe { kernel32::Module32NextW(hModule, &mut Entry) } != 0
                 {
@@ -79,6 +81,10 @@ impl Module
                 }
             }
         }
+        //if unsafe { kernel32::GetLastError() } == winapi::ERROR_BAD_LENGTH { println!("bad length"); }
+        let error = unsafe { kernel32::GetLastError() };
+        println!("{:?}", error);
+
         println!("couldn't get module");
         return Module { m_dwBase: ptr::null_mut(), m_dwSize: 0 }
     }
