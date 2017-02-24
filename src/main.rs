@@ -11,6 +11,6 @@ fn main() {
     let var2 = process.ReadMemory(var1 + 0x100);
 
     while true {
-        println!("{:X}", var2);
+        println!("{}", var2);
     }
 }
