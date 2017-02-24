@@ -41,39 +41,46 @@ impl Module
     pub fn GetModule(procName: &str, moduleName: &str) -> Module 
     {
         let dwPID = GetProcId(procName);
+        println!("PID: {}", dwPID);
+        
         let hModule = unsafe
         {
             kernel32::CreateToolhelp32Snapshot(winapi::TH32CS_SNAPMODULE, dwPID)
         };
 
-        let mut Entry: winapi::MODULEENTRY32W = unsafe
-        {
-            mem::uninitialized()
-        };
+        let mut Entry: winapi::MODULEENTRY32W = unsafe { mem::zeroed() };
 
         Entry.dwSize = mem::size_of::<winapi::MODULEENTRY32W>() as u32;
 
-        if unsafe { kernel32::Module32NextW(hModule, &mut Entry) } != 0
+        if hModule != winapi::INVALID_HANDLE_VALUE
         {
-
-            while unsafe { kernel32::Module32NextW(hModule, &mut Entry) } != 0
+            if unsafe { kernel32::Module32FirstW(hModule, &mut Entry) } != 0
             {
-                let modName = OsString::from_wide(&Entry.szModule);
-
-                match modName.into_string()
+                println!("1");
+                while unsafe { kernel32::Module32NextW(hModule, &mut Entry) } != 0
                 {
-                    Ok(s) =>
+                    println!("2");
+                    let modName = OsString::from_wide(&Entry.szModule);
+                    println!("{:?}", modName);
+
+                    match modName.into_string()
                     {
-                        if s.contains(moduleName) 
+                        Ok(s) =>
                         {
-                            unsafe { kernel32::CloseHandle(hModule) };
-                            return Module { m_dwBase: Entry.modBaseAddr, m_dwSize: Entry.modBaseSize}
-                        }
-                    }, Err(_) => { println!("fuck off"); }
+                            if s.contains(moduleName) 
+                            {
+
+                                unsafe { kernel32::CloseHandle(hModule) };
+                                println!("returning base addr and size");
+                                return Module { m_dwBase: Entry.modBaseAddr, m_dwSize: Entry.modBaseSize}
+                            }
+                        }, Err(_) => { println!("fuck off"); }
+                    }
                 }
             }
+            println!("couldn't get module");
+            return Module { m_dwBase: ptr::null_mut(), m_dwSize: 0 }
         }
-       return Module { m_dwBase: ptr::null_mut(), m_dwSize: 0 }
     }
 }
 
@@ -94,14 +101,11 @@ pub fn GetProcId(name: &str) -> u32
         kernel32::CreateToolhelp32Snapshot(winapi::TH32CS_SNAPPROCESS, 0)
     };
 
-    let mut Entry: winapi::PROCESSENTRY32W = unsafe
-    {
-        mem::uninitialized()
-    };
+    let mut Entry: winapi::PROCESSENTRY32W = unsafe { mem::zeroed() };
 
     Entry.dwSize = mem::size_of::<winapi::PROCESSENTRY32W>() as u32;
 
-    if unsafe { kernel32::Process32NextW(hProcess, &mut Entry) } != 0
+    if unsafe { kernel32::Process32FirstW(hProcess, &mut Entry) } != 0
     {
 
         while unsafe { kernel32::Process32NextW(hProcess, &mut Entry) } != 0
